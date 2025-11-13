@@ -9,8 +9,18 @@ import (
 )
 
 func TestRoutter_GetRoute(t *testing.T) {
-	r := router.New()
-	r.Get("/") // TODO: need to pass a handler here.
+	routes := []router.Route{
+		{
+			http.MethodGet,
+			"/",
+			func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte(`{"ok":true}`))
+			},
+		},
+	}
+	r := router.New(routes)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
