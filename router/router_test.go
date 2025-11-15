@@ -1,6 +1,8 @@
 package router_test
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -8,10 +10,12 @@ import (
 	"github.com/elmq0022/krillin/router"
 )
 
-func TestRoutter_GetRoute(t *testing.T) {
+func TestRouter_GetRoute(t *testing.T) {
+	result := make(map[string]bool)
+	result["ok"] = true
+	want, _ := json.Marshal(result)
+
 	handler := func(req *http.Request) (int, any, error) {
-		result := make(map[string]bool)
-		result["ok"] = true
 		return http.StatusOK, result, nil
 	}
 	routes := []router.Route{
@@ -36,5 +40,13 @@ func TestRoutter_GetRoute(t *testing.T) {
 	}
 	if got := res.Header.Get("Content-Type"); got != "application/json" {
 		t.Fatalf("unexpected content-type: %q", got)
+	}
+
+	got, err := io.ReadAll(res.Body)
+	if err != nil {
+		t.Fatalf("read body: %v", err)
+	}
+	if string(got) != string(want) {
+		t.Fatalf("want %s, got %s", want, got)
 	}
 }
