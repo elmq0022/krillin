@@ -4,14 +4,15 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/elmq0022/krillin/adapters"
 	"github.com/elmq0022/krillin/internal/radix"
 	"github.com/elmq0022/krillin/router"
 )
 
 func TestRadix(t *testing.T) {
-	routes := []router.Route[router.Handler]{}
+	routes := []router.Route[adapters.Handler]{}
 
-	radix, _ := radix.New[router.Handler](routes)
+	radix, _ := radix.New[adapters.Handler](routes)
 
 	url := "/url/path/to/resource"
 	method := http.MethodGet

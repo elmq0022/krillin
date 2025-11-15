@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/elmq0022/krillin/adapters"
 	"github.com/elmq0022/krillin/router"
 )
 
@@ -18,7 +19,10 @@ func TestRouter_GetRoute(t *testing.T) {
 	handler := func(req *http.Request) (int, any, error) {
 		return http.StatusOK, result, nil
 	}
-	routes := []router.Route[router.Handler]{
+
+	// TODO: can I kill the generic here if I always
+	// just use the handler type? Probably
+	routes := []router.Route[adapters.Handler]{
 		{
 			http.MethodGet,
 			"/",
@@ -26,7 +30,7 @@ func TestRouter_GetRoute(t *testing.T) {
 		},
 	}
 
-	r := router.New(routes, router.JsonAdapter)
+	r := router.New(routes, adapters.JsonAdapter)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
