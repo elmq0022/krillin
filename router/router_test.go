@@ -9,15 +9,16 @@ import (
 )
 
 func TestRoutter_GetRoute(t *testing.T) {
+	handler := func(req *http.Request) (int, any, error) {
+		result := make(map[string]bool)
+		result["ok"] = true
+		return http.StatusOK, result, nil
+	}
 	routes := []router.Route{
 		{
 			http.MethodGet,
 			"/",
-			func(w http.ResponseWriter, r *http.Request) {
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusOK)
-				w.Write([]byte(`{"ok":true}`))
-			},
+			handler,
 		},
 	}
 	r := router.New(routes)
