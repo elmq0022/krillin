@@ -18,14 +18,15 @@ func TestRouter_GetRoute(t *testing.T) {
 	handler := func(req *http.Request) (int, any, error) {
 		return http.StatusOK, result, nil
 	}
-	routes := []router.Route{
+	routes := []router.Route[router.Handler]{
 		{
 			http.MethodGet,
 			"/",
 			handler,
 		},
 	}
-	r := router.New(routes)
+
+	r := router.New(routes, router.JsonAdapter)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()

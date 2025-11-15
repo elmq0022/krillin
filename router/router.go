@@ -7,7 +7,7 @@ import (
 
 type Handler func(req *http.Request) (int, any, error)
 
-func Handler2Json(w http.ResponseWriter, req *http.Request, handler Handler) {
+func JsonAdapter(w http.ResponseWriter, req *http.Request, handler Handler) {
 	status, result, _ := handler(req)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -15,26 +15,30 @@ func Handler2Json(w http.ResponseWriter, req *http.Request, handler Handler) {
 	w.Write([]byte(data))
 }
 
-type Route struct {
+type Route[T any] struct {
 	Method  string
 	Path    string
-	Handler Handler
+	Handler T
 }
 
-type Router struct {
-	routes []Route
+type Adapter[T any] func(http.ResponseWriter, *http.Request, T)
+
+type Router[T any] struct {
+	routes    []Route[T]
+	processor func(http.ResponseWriter, *http.Request, T)
 }
 
-func New(routes []Route) *Router {
-	return &Router{
-		routes: routes,
+func New[T any](routes []Route[T], processor Adapter[T]) *Router[T] {
+	return &Router[T]{
+		routes:    routes,
+		processor: processor,
 	}
 }
 
-func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (r *Router[T]) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for _, route := range r.routes {
 		if route.Method == req.Method && route.Path == req.URL.Path {
-			Handler2Json(w, req, route.Handler)
+			r.processor(w, req, route.Handler)
 			return
 		}
 	}
