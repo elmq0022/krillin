@@ -29,7 +29,6 @@ func New(routes []router.Route) (*Radix, error) {
 		r.addRoute(route, r.root, segments, 0)
 	}
 
-	compress(r.root)
 	return &r, nil
 }
 
@@ -56,48 +55,30 @@ func (r *Radix) addRoute(route router.Route, node *Node, segments []string, pos 
 	r.addRoute(route, n, segments, pos+1)
 }
 
-func compress(node *Node) {
-	for i := range node.children {
-		compress(node.children[i])
-	}
-
-	if node.prefix == "" {
-		return
-	}
-
-	if len(node.children) == 1 && node.terminal == nil {
-		child := node.children[0]
-		node.prefix = node.prefix + "/" + child.prefix
-		node.terminal = child.terminal
-		node.children = child.children
-	}
-}
-
 func (r *Radix) Lookup(method, path string) (router.Handler, bool) {
 	root := r.root
-	return lookup(root, method, path)
+	segments := strings.Split(path, "/")
+	if segments[0] == "" {
+		segments = segments[1:]
+	}
+	return lookup(root, method, segments, 0)
 }
 
-func lookup(node *Node, method, path string) (router.Handler, bool) {
+func lookup(node *Node, method string, segments []string, pos int) (router.Handler, bool) {
 	var zero router.Handler
 
 	if node == nil {
 		return zero, false
 	}
 
-	if len(path) > 0 && path[0] == '/' {
-		path = path[1:]
-	}
-
-	if path == "" {
+	if pos >= len(segments) {
 		handler, ok := node.terminal[method]
 		return handler, ok
 	}
 
 	for _, child := range node.children {
-		// check if the prefix matches and then ensure there is a complete match or a full segment is matched
-		if strings.HasPrefix(path, child.prefix) && (len(path) == len(child.prefix) || path[len(child.prefix)] == '/') {
-			h, ok := lookup(child, method, path[len(child.prefix):])
+		if segments[pos] == child.prefix {
+			h, ok := lookup(child, method, segments, pos+1)
 			return h, ok
 		}
 	}
