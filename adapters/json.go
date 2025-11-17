@@ -5,9 +5,6 @@ import (
 	"net/http"
 )
 
-type Handler func(req *http.Request) (int, any, error)
-type Adapter func(http.ResponseWriter, *http.Request, Handler)
-
 func JsonAdapter(w http.ResponseWriter, req *http.Request, handler Handler) {
 	status, result, _ := handler(req)
 	w.Header().Set("Content-Type", "application/json")
