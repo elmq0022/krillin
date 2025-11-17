@@ -13,21 +13,21 @@ type Route[T any] struct {
 type Adapter[T any] func(http.ResponseWriter, *http.Request, T)
 
 type Router[T any] struct {
-	routes    []Route[T]
-	processor func(http.ResponseWriter, *http.Request, T)
+	routes  []Route[T]
+	adapter Adapter[T]
 }
 
 func New[T any](routes []Route[T], processor Adapter[T]) *Router[T] {
 	return &Router[T]{
-		routes:    routes,
-		processor: processor,
+		routes:  routes,
+		adapter: processor,
 	}
 }
 
 func (r *Router[T]) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for _, route := range r.routes {
 		if route.Method == req.Method && route.Path == req.URL.Path {
-			r.processor(w, req, route.Handler)
+			r.adapter(w, req, route.Handler)
 			return
 		}
 	}

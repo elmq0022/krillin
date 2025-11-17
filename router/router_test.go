@@ -20,16 +20,9 @@ func TestRouter_GetRoute(t *testing.T) {
 		return http.StatusOK, result, nil
 	}
 
-	// TODO: can I kill the generic here if I always
-	// just use the handler type? Probably
-	routes := []router.Route[adapters.Handler]{
-		{
-			http.MethodGet,
-			"/",
-			handler,
-		},
+	routes := router.Routes{
+		{http.MethodGet, "/", handler},
 	}
-
 	r := router.New(routes, adapters.JsonAdapter)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
