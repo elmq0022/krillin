@@ -95,9 +95,9 @@ func lookup[T any](node *Node[T], method, path string) (T, bool) {
 	}
 
 	for _, child := range node.children {
-		if strings.HasPrefix(path, child.prefix) {
-			path := path[len(child.prefix):]
-			h, ok := lookup(child, method, path)
+		// check if the prefix matches and then ensure there is a complete match or a full segment is matched
+		if strings.HasPrefix(path, child.prefix) && (len(path) == len(child.prefix) || path[len(child.prefix)] == '/') {
+			h, ok := lookup(child, method, path[len(child.prefix):])
 			return h, ok
 		}
 	}
