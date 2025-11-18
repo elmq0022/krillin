@@ -8,9 +8,11 @@ import (
 )
 
 type Node struct {
-	prefix   string
-	children []*Node
-	terminal map[string]router.Handler
+	prefix    string
+	children  []*Node
+	paramName string
+	param     *Node
+	terminal  map[string]router.Handler
 }
 
 type Radix struct {
@@ -43,6 +45,19 @@ func (r *Radix) addRoute(route router.Route, node *Node, segments []string, pos 
 
 	seg := segments[pos]
 
+	if seg[0] == ':' {
+		if node.param == nil {
+			node.param = &Node{paramName: seg[1:]}
+			r.addRoute(route, node.param, segments, pos+1)
+			return
+		} else if node.param.paramName == seg[1:] {
+			r.addRoute(route, node.param, segments, pos+1)
+			return
+		} else {
+			panic("bad")
+		}
+	}
+
 	for _, child := range node.children {
 		if child.prefix == seg {
 			r.addRoute(route, child, segments, pos+1)
@@ -55,16 +70,18 @@ func (r *Radix) addRoute(route router.Route, node *Node, segments []string, pos 
 	r.addRoute(route, n, segments, pos+1)
 }
 
-func (r *Radix) Lookup(method, path string) (router.Handler, bool) {
+func (r *Radix) Lookup(method, path string) (router.Handler, map[string]string, bool) {
 	root := r.root
 	segments := strings.Split(path, "/")
 	if segments[0] == "" {
 		segments = segments[1:]
 	}
-	return lookup(root, method, segments, 0)
+	params := make(map[string]string)
+	handler, ok := lookup(root, method, segments, 0, params)
+	return handler, params, ok
 }
 
-func lookup(node *Node, method string, segments []string, pos int) (router.Handler, bool) {
+func lookup(node *Node, method string, segments []string, pos int, params map[string]string) (router.Handler, bool) {
 	var zero router.Handler
 
 	if node == nil {
@@ -78,9 +95,15 @@ func lookup(node *Node, method string, segments []string, pos int) (router.Handl
 
 	for _, child := range node.children {
 		if segments[pos] == child.prefix {
-			h, ok := lookup(child, method, segments, pos+1)
+			h, ok := lookup(child, method, segments, pos+1, params)
 			return h, ok
 		}
+	}
+
+	if node.param != nil {
+		params[node.param.paramName] = segments[pos]
+		h, ok := lookup(node.param, method, segments, pos+1, params)
+		return h, ok
 	}
 
 	return zero, false
