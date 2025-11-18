@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/elmq0022/krillin/router"
+	"github.com/elmq0022/krillin/types"
 )
 
 type Node struct {
@@ -12,14 +12,14 @@ type Node struct {
 	children  []*Node
 	paramName string
 	param     *Node
-	terminal  map[string]router.Handler
+	terminal  map[string]types.Handler
 }
 
 type Radix struct {
 	root *Node
 }
 
-func New(routes []router.Route) (*Radix, error) {
+func New(routes types.Routes) (*Radix, error) {
 	r := Radix{root: &Node{}}
 
 	for _, route := range routes {
@@ -34,10 +34,10 @@ func New(routes []router.Route) (*Radix, error) {
 	return &r, nil
 }
 
-func (r *Radix) addRoute(route router.Route, node *Node, segments []string, pos int) {
+func (r *Radix) addRoute(route types.Route, node *Node, segments []string, pos int) {
 	if pos >= len(segments) {
 		if node.terminal == nil {
-			node.terminal = make(map[string]router.Handler)
+			node.terminal = make(map[string]types.Handler)
 		}
 		node.terminal[route.Method] = route.Handler
 		return
@@ -70,7 +70,7 @@ func (r *Radix) addRoute(route router.Route, node *Node, segments []string, pos 
 	r.addRoute(route, n, segments, pos+1)
 }
 
-func (r *Radix) Lookup(method, path string) (router.Handler, map[string]string, bool) {
+func (r *Radix) Lookup(method, path string) (types.Handler, map[string]string, bool) {
 	root := r.root
 	segments := strings.Split(path, "/")
 	if segments[0] == "" {
@@ -81,8 +81,8 @@ func (r *Radix) Lookup(method, path string) (router.Handler, map[string]string, 
 	return handler, params, ok
 }
 
-func lookup(node *Node, method string, segments []string, pos int, params map[string]string) (router.Handler, bool) {
-	var zero router.Handler
+func lookup(node *Node, method string, segments []string, pos int, params map[string]string) (types.Handler, bool) {
+	var zero types.Handler
 
 	if node == nil {
 		return zero, false

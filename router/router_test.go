@@ -9,6 +9,7 @@ import (
 
 	"github.com/elmq0022/krillin/adapters"
 	"github.com/elmq0022/krillin/router"
+	"github.com/elmq0022/krillin/types"
 )
 
 func TestRouter_GetRoute(t *testing.T) {
@@ -20,12 +21,13 @@ func TestRouter_GetRoute(t *testing.T) {
 		return http.StatusOK, result, nil
 	}
 
-	routes := router.Routes{
-		{http.MethodGet, "/", handler},
+	routes := types.Routes{
+		{Method: http.MethodGet, Path: "/foo/bar", Handler: handler},
 	}
+
 	r := router.New(routes, adapters.JsonAdapter)
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequest(http.MethodGet, "/foo/bar", nil)
 	rec := httptest.NewRecorder()
 
 	r.ServeHTTP(rec, req)

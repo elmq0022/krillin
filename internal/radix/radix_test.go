@@ -5,16 +5,16 @@ import (
 	"testing"
 
 	"github.com/elmq0022/krillin/internal/radix"
-	"github.com/elmq0022/krillin/router"
+	"github.com/elmq0022/krillin/types"
 )
 
-func MakeTestHandler(value any) router.Handler {
+func MakeTestHandler(value any) types.Handler {
 	return func(req *http.Request) (int, any, error) {
 		return 0, value, nil
 	}
 }
 
-func ReadTestHandler(h router.Handler) any {
+func ReadTestHandler(h types.Handler) any {
 	fakeReq, _ := http.NewRequest(http.MethodGet, "", nil)
 	_, value, _ := h(fakeReq)
 	return value
@@ -26,7 +26,7 @@ func TestNewRadix(t *testing.T) {
 	method := http.MethodGet
 	handler := MakeTestHandler(1)
 
-	routes := router.Routes{
+	routes := types.Routes{
 		{Path: path, Method: method, Handler: handler},
 		{Path: "/foo/bar/baz2", Method: http.MethodGet, Handler: MakeTestHandler(2)},
 		{Path: "/foo/bar/:id", Method: http.MethodGet, Handler: MakeTestHandler(3)},

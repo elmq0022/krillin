@@ -2,36 +2,32 @@ package router
 
 import (
 	"net/http"
+
+	"github.com/elmq0022/krillin/internal/radix"
+	"github.com/elmq0022/krillin/types"
 )
 
-type Handler func(req *http.Request) (int, any, error)
-type Routes []Route
-type Adapter func(http.ResponseWriter, *http.Request, Handler)
-
-type Route struct {
-	Method  string
-	Path    string
-	Handler Handler
-}
-
 type Router struct {
-	routes  []Route
-	adapter Adapter
+	routes  []types.Route
+	adapter types.Adapter
+	radix   *radix.Radix
 }
 
-func New(routes []Route, processor Adapter) *Router {
+func New(routes types.Routes, processor types.Adapter) *Router {
+	radix, _ := radix.New(routes)
+
 	return &Router{
 		routes:  routes,
 		adapter: processor,
+		radix:   radix,
 	}
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	for _, route := range r.routes {
-		if route.Method == req.Method && route.Path == req.URL.Path {
-			r.adapter(w, req, route.Handler)
-			return
-		}
+	h, _, ok := r.radix.Lookup(req.Method, req.URL.Path)
+	if ok {
+		r.adapter(w, req, h)
+		return
 	}
 	http.NotFound(w, req)
 }
