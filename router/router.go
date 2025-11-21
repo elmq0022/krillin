@@ -13,14 +13,17 @@ type Router struct {
 	radix   *radix.Radix
 }
 
-func New(routes types.Routes, adapter types.Adapter) *Router {
-	radix, _ := radix.New(routes)
+func New(routes types.Routes, adapter types.Adapter) (*Router, error) {
+	rdx, err := radix.New(routes)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Router{
 		routes:  routes,
 		adapter: adapter,
-		radix:   radix,
-	}
+		radix:   rdx,
+	}, nil
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
