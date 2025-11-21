@@ -20,40 +20,159 @@ func ReadTestHandler(h types.Handler) any {
 	return value
 }
 
-func TestNewRadix(t *testing.T) {
+func TestRadix_Lookup(t *testing.T) {
+	tests := []struct {
+		name       string
+		routes     types.Routes
+		method     string
+		path       string
+		wantValue  any
+		wantParams map[string]string
+		wantFound  bool
+	}{
+		// Static routes
+		{
+			name: "static root",
+			routes: types.Routes{
+				{Path: "/", Method: http.MethodGet, Handler: MakeTestHandler("root")},
+			},
+			method:    http.MethodGet,
+			path:      "/",
+			wantValue: "root",
+			wantFound: true,
+		},
+		{
+			name: "static nested",
+			routes: types.Routes{
+				{Path: "/foo/bar", Method: http.MethodGet, Handler: MakeTestHandler("bar")},
+			},
+			method:    http.MethodGet,
+			path:      "/foo/bar",
+			wantValue: "bar",
+			wantFound: true,
+		},
 
-	path := "/foo/bar/baz"
-	method := http.MethodGet
-	handler := MakeTestHandler(1)
+		// Param routes
+		{
+			name: "single param",
+			routes: types.Routes{
+				{Path: "/user/:id", Method: http.MethodGet, Handler: MakeTestHandler("user")},
+			},
+			method:     http.MethodGet,
+			path:       "/user/alice",
+			wantValue:  "user",
+			wantParams: map[string]string{"id": "alice"},
+			wantFound:  true,
+		},
+		{
+			name: "two params",
+			routes: types.Routes{
+				{Path: "/user/:uid/post/:pid", Method: http.MethodGet, Handler: MakeTestHandler("post")},
+			},
+			method:     http.MethodGet,
+			path:       "/user/alice/post/42",
+			wantValue:  "post",
+			wantParams: map[string]string{"uid": "alice", "pid": "42"},
+			wantFound:  true,
+		},
 
-	routes := types.Routes{
-		{Path: path, Method: method, Handler: handler},
-		{Path: "/foo/bar/baz2", Method: http.MethodGet, Handler: MakeTestHandler(2)},
-		{Path: "/foo/bar/:id", Method: http.MethodGet, Handler: MakeTestHandler(3)},
+		// // Wildcards
+		// {
+		// 	name: "wildcard match",
+		// 	routes: types.Routes{
+		// 		{Path: "/static/*path", Method: http.MethodGet, Handler: MakeTestHandler("static")},
+		// 	},
+		// 	method:     http.MethodGet,
+		// 	path:       "/static/js/app.js",
+		// 	wantValue:  "static",
+		// 	wantParams: map[string]string{"path": "js/app.js"},
+		// 	wantFound:  true,
+		// },
+		// {
+		// 	name: "wildcard empty",
+		// 	routes: types.Routes{
+		// 		{Path: "/static/*path", Method: http.MethodGet, Handler: MakeTestHandler("static")},
+		// 	},
+		// 	method:     http.MethodGet,
+		// 	path:       "/static/",
+		// 	wantValue:  "static",
+		// 	wantParams: map[string]string{"path": ""},
+		// 	wantFound:  true,
+		// },
+
+		// Conflicting routes
+		{
+			name: "param vs static conflict",
+			routes: types.Routes{
+				{Path: "/user/list", Method: http.MethodGet, Handler: MakeTestHandler("list")},
+				{Path: "/user/:id", Method: http.MethodGet, Handler: MakeTestHandler("detail")},
+			},
+			method:     http.MethodGet,
+			path:       "/user/list",
+			wantValue:  "list", // static should win
+			wantParams: map[string]string{},
+			wantFound:  true,
+		},
+		{
+			name: "param wins if no static",
+			routes: types.Routes{
+				{Path: "/user/:id", Method: http.MethodGet, Handler: MakeTestHandler("detail")},
+			},
+			method:     http.MethodGet,
+			path:       "/user/bob",
+			wantValue:  "detail",
+			wantParams: map[string]string{"id": "bob"},
+			wantFound:  true,
+		},
+
+		// Method mismatch
+		{
+			name: "wrong method",
+			routes: types.Routes{
+				{Path: "/foo", Method: http.MethodGet, Handler: MakeTestHandler("get")},
+			},
+			method:    http.MethodPost,
+			path:      "/foo",
+			wantFound: false,
+		},
+
+		// Not found
+		{
+			name: "missing route",
+			routes: types.Routes{
+				{Path: "/foo/bar", Method: http.MethodGet, Handler: MakeTestHandler("bar")},
+			},
+			method:    http.MethodGet,
+			path:      "/foo/baz",
+			wantFound: false,
+		},
 	}
 
-	r, _ := radix.New(routes)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := radix.New(tt.routes)
+			if err != nil {
+				t.Fatalf("failed to create radix: %v", err)
+			}
 
-	h, _, _ := r.Lookup(method, path)
-	if got := ReadTestHandler(h); got != 1 {
-		t.Fatalf("want %d, got %d", 1, got)
-	}
+			h, params, found := r.Lookup(tt.method, tt.path)
+			if found != tt.wantFound {
+				t.Fatalf("expected found=%v, got %v", tt.wantFound, found)
+			}
+			if !found {
+				return
+			}
 
-	h, _, _ = r.Lookup(http.MethodGet, "/foo/bar/baz2")
-	if got := ReadTestHandler(h); got != 2 {
-		t.Fatalf("want %d, got %d", 2, got)
-	}
+			got := ReadTestHandler(h)
+			if got != tt.wantValue {
+				t.Fatalf("expected value %v, got %v", tt.wantValue, got)
+			}
 
-	h, params, _ := r.Lookup(http.MethodGet, "/foo/bar/42")
-	if got := ReadTestHandler(h); got != 3 {
-		t.Fatalf("want %d, got %d", 3, got)
-	}
-
-	param, ok := params["id"]
-	if !ok {
-		t.Fatal("could not retrive the paramter")
-	}
-	if param != "42" {
-		t.Fatalf("want 42, got %s", param)
+			for k, v := range tt.wantParams {
+				if params[k] != v {
+					t.Fatalf("expected param %s=%s, got %s", k, v, params[k])
+				}
+			}
+		})
 	}
 }
