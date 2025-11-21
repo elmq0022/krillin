@@ -33,7 +33,7 @@ func NewTestHandler(status int, body any, err error) types.Handler {
 	}
 }
 
-func TestRouter_BasicRoutes(t *testing.T) {
+func TestRouter_RoundTrip(t *testing.T) {
 	tests := []struct {
 		name       string
 		method     string
