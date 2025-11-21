@@ -38,3 +38,27 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	r.adapter(w, req, h)
 }
+
+func (r *Router) add(method, path string, handler types.Handler) error {
+	return r.radix.AddRoute(method, path, handler)
+}
+
+func (r *Router) GET(path string, handler types.Handler) error {
+	return r.add(http.MethodGet, path, handler)
+}
+
+func (r *Router) POST(path string, handler types.Handler) error {
+	return r.add(http.MethodPost, path, handler)
+}
+
+func (r *Router) PUT(path string, handler types.Handler) error {
+	return r.add(http.MethodPut, path, handler)
+}
+
+func (r *Router) DELETE(path string, handler types.Handler) error {
+	return r.add(http.MethodDelete, path, handler)
+}
+
+func (r *Router) PATCH(path string, handler types.Handler) error {
+	return r.add(http.MethodPatch, path, handler)
+}
