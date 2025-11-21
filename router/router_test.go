@@ -56,9 +56,9 @@ func TestRouter_RoundTrip(t *testing.T) {
 		{name: "user list", method: http.MethodGet, path: "/user/list", wantStatus: http.StatusOK, wantBody: "user list", wantErr: nil, wantParams: map[string]string{}, callPath: "/user/list"},
 		{name: "user detail", method: http.MethodGet, path: "/user/:id", wantStatus: http.StatusOK, wantBody: "user detail", wantErr: nil, wantParams: map[string]string{"id": "bob"}, callPath: "/user/bob"},
 
-		// Wildcard routes TODO: implement the wildcard
-		{name: "static js", method: http.MethodGet, path: "/static/:path", wantStatus: http.StatusOK, wantBody: "static", wantErr: nil, wantParams: map[string]string{"path": "app.js"}, callPath: "/static/app.js"},
-		{name: "static css", method: http.MethodGet, path: "/static/:path", wantStatus: http.StatusOK, wantBody: "static", wantErr: nil, wantParams: map[string]string{"path": "main.css"}, callPath: "/static/main.css"},
+		// Wildcard routes
+		{name: "static js", method: http.MethodGet, path: "/static/*path", wantStatus: http.StatusOK, wantBody: "static", wantErr: nil, wantParams: map[string]string{"path": "js/app.js"}, callPath: "/static/js/app.js"},
+		{name: "static css", method: http.MethodGet, path: "/static/*path", wantStatus: http.StatusOK, wantBody: "static", wantErr: nil, wantParams: map[string]string{"path": "css/main.css"}, callPath: "/static/css/main.css"},
 
 		// Method mismatch (should not match)
 		{name: "wrong method", method: http.MethodPost, path: "/about", wantStatus: http.StatusNotFound, wantBody: nil, wantErr: nil, wantParams: map[string]string{}, callPath: "/about"},
