@@ -77,3 +77,19 @@ func (r *Router) DELETE(path string, handler types.Handler) {
 func (r *Router) PATCH(path string, handler types.Handler) {
 	r.add(http.MethodPatch, path, handler)
 }
+
+func (r *Router) HEAD(path string, handler types.Handler) {
+	r.add(http.MethodHead, path, handler)
+}
+
+func (r *Router) OPTIONS(path string, handler types.Handler) {
+	r.add(http.MethodOptions, path, handler)
+}
+
+func (r *Router) CONNECT(path string, handler types.Handler) {
+	r.add(http.MethodConnect, path, handler)
+}
+
+func (r *Router) TRACE(path string, handler types.Handler) {
+	r.add(http.MethodTrace, path, handler)
+}
