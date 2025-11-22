@@ -12,6 +12,7 @@ type Router struct {
 	adapter  types.Adapter
 	radix    *radix.Radix
 	notFound types.Handler
+	global   []types.Middleware
 }
 
 func New(adapter types.Adapter, opts ...Option) (*Router, error) {
@@ -42,6 +43,10 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	ctx := WithParams(req.Context(), params)
 	req = req.WithContext(ctx)
+
+	for i := len(r.global) - 1; i >= 0; i-- {
+		h = r.global[i](h)
+	}
 
 	r.adapter(w, req, h)
 }
