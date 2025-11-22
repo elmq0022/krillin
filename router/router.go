@@ -14,17 +14,23 @@ type Router struct {
 	notFound types.Handler
 }
 
-func New(adapter types.Adapter) (*Router, error) {
+func New(adapter types.Adapter, opts ...Option) (*Router, error) {
 	rdx, err := radix.New()
 	if err != nil {
 		return nil, err
 	}
 
-	return &Router{
+	r := &Router{
 		adapter:  adapter,
 		radix:    rdx,
 		notFound: handlers.DefaultNotFoundHandler,
-	}, nil
+	}
+
+	for _, opt := range opts {
+		opt(r)
+	}
+
+	return r, nil
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
