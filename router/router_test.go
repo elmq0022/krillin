@@ -67,8 +67,8 @@ func TestRouter_RoundTrip(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			record := SpyAdapterRecord{}
-			r, err := router.New(NewSpyAdapter(&record))
+			spy := SpyAdapterRecord{}
+			r, err := router.New(NewSpyAdapter(&spy))
 			if err != nil {
 				t.Fatalf("failed to create router: %v", err)
 			}
@@ -80,20 +80,20 @@ func TestRouter_RoundTrip(t *testing.T) {
 
 			r.ServeHTTP(rec, req)
 
-			if tt.wantBody != record.Body {
-				t.Fatalf("body: want %v, got %v", tt.wantBody, record.Body)
+			if tt.wantBody != spy.Body {
+				t.Fatalf("body: want %v, got %v", tt.wantBody, spy.Body)
 			}
 
-			if tt.wantStatus != record.Status {
-				t.Fatalf("status: want %d, got %d", tt.wantStatus, record.Status)
+			if tt.wantStatus != spy.Status {
+				t.Fatalf("status: want %d, got %d", tt.wantStatus, spy.Status)
 			}
 
-			if tt.wantErr != record.Err {
-				t.Fatalf("error: want %v got %v", tt.wantErr, record.Err)
+			if tt.wantErr != spy.Err {
+				t.Fatalf("error: want %v got %v", tt.wantErr, spy.Err)
 			}
 
-			if !maps.Equal(tt.wantParams, record.Params) {
-				t.Fatalf("params: want %v got %v", tt.wantParams, record.Params)
+			if !maps.Equal(tt.wantParams, spy.Params) {
+				t.Fatalf("params: want %v got %v", tt.wantParams, spy.Params)
 			}
 		})
 	}
