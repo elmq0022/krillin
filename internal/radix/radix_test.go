@@ -20,6 +20,74 @@ func ReadTestHandler(h types.Handler) any {
 	return resp.Body
 }
 
+func TestRadix_AddRoute_Validation(t *testing.T) {
+	tests := []struct {
+		name      string
+		path      string
+		wantError bool
+	}{
+		{
+			name:      "empty parameter name",
+			path:      "/user/:/posts",
+			wantError: true,
+		},
+		{
+			name:      "single char parameter name",
+			path:      "/user/:a/posts",
+			wantError: false,
+		},
+		{
+			name:      "empty wildcard name",
+			path:      "/static/*",
+			wantError: true,
+		},
+		{
+			name:      "single char wildcard name",
+			path:      "/static/*p",
+			wantError: false,
+		},
+		{
+			name:      "valid two char parameter",
+			path:      "/user/:id/posts",
+			wantError: false,
+		},
+		{
+			name:      "valid two char wildcard",
+			path:      "/static/*fp",
+			wantError: false,
+		},
+		{
+			name:      "path without leading slash",
+			path:      "user/profile",
+			wantError: true,
+		},
+		{
+			name:      "empty path",
+			path:      "",
+			wantError: true,
+		},
+		{
+			name:      "wildcard in middle position",
+			path:      "/static/*/more",
+			wantError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, _ := radix.New()
+			err := r.AddRoute(http.MethodGet, tt.path, MakeTestHandler("test"))
+
+			if tt.wantError && err == nil {
+				t.Fatalf("expected error for path %q, got nil", tt.path)
+			}
+			if !tt.wantError && err != nil {
+				t.Fatalf("expected no error for path %q, got %v", tt.path, err)
+			}
+		})
+	}
+}
+
 func TestRadix_Lookup(t *testing.T) {
 	tests := []struct {
 		name       string

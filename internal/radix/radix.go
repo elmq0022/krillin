@@ -46,8 +46,10 @@ func (r *Radix) insert(route types.Route, node *Node, segments []string, pos int
 
 	seg := segments[pos]
 
-	if len(seg) > 2 && seg[0] == ':' {
-		if node.param == nil {
+	if len(seg) >= 1 && seg[0] == ':' {
+		if len(seg) == 1 {
+			return fmt.Errorf("got single ':' at position %d in path %s", pos, route.Path)
+		} else if node.param == nil {
 			node.param = &Node{paramName: seg[1:]}
 			return r.insert(route, node.param, segments, pos+1)
 		} else if node.param.paramName == seg[1:] {
@@ -57,8 +59,10 @@ func (r *Radix) insert(route types.Route, node *Node, segments []string, pos int
 		}
 	}
 
-	if len(seg) > 2 && seg[0] == '*' {
-		if pos != len(segments)-1 {
+	if len(seg) >= 1 && seg[0] == '*' {
+		if len(seg) == 1 {
+			return fmt.Errorf("got single '*' at position %d in path %s", pos, route.Path)
+		} else if pos != len(segments)-1 {
 			return fmt.Errorf("wildcard in non-terminal position in path '%s'", route.Path)
 		}
 		if node.wildcard == nil {
