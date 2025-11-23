@@ -14,5 +14,5 @@ func GetParams(ctx context.Context) map[string]string {
 	if p, ok := ctx.Value(paramsKey).(map[string]string); ok {
 		return p
 	}
-	return map[string]string{}
+	return make(map[string]string)
 }
