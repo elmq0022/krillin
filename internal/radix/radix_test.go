@@ -88,6 +88,63 @@ func TestRadix_AddRoute_Validation(t *testing.T) {
 	}
 }
 
+func TestRadix_DuplicateParameterNames(t *testing.T) {
+	tests := []struct {
+		name      string
+		path      string
+		wantError bool
+		errorMsg  string
+	}{
+		{
+			name:      "duplicate parameter names in path",
+			path:      "/user/:id/posts/:id",
+			wantError: true,
+		},
+		{
+			name:      "duplicate parameter names with different structure",
+			path:      "/api/:version/users/:id/posts/:version",
+			wantError: true,
+		},
+		{
+			name:      "unique parameter names",
+			path:      "/user/:userId/posts/:postId",
+			wantError: false,
+		},
+		{
+			name:      "three parameters all unique",
+			path:      "/api/:version/users/:userId/posts/:postId",
+			wantError: false,
+		},
+		{
+			name:      "duplicate wildcard and param with same name",
+			path:      "/user/:path/files/*path",
+			wantError: true,
+		},
+		{
+			name:      "single parameter no duplicates",
+			path:      "/user/:id",
+			wantError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, _ := radix.New()
+			err := r.AddRoute(http.MethodGet, tt.path, MakeTestHandler("test"))
+
+			if tt.wantError {
+				if err == nil {
+					t.Fatalf("expected error for path %q, got nil", tt.path)
+				}
+			} else {
+				if err != nil {
+					t.Fatalf("expected no error for path %q, got %v", tt.path, err)
+				}
+			}
+		})
+	}
+}
+
 func TestRadix_Lookup(t *testing.T) {
 	tests := []struct {
 		name       string

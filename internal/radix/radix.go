@@ -30,8 +30,14 @@ func (r *Radix) AddRoute(method string, path string, handler types.Handler) erro
 	if len(path) == 0 || path[0] != '/' {
 		return fmt.Errorf("path must start with '/'")
 	}
+
 	route := types.Route{Method: method, Path: path, Handler: handler}
 	segments := pathSegments(path)
+
+	if err := validate__NoDuplicateParams(path, segments); err != nil {
+		return err
+	}
+
 	return r.insert(route, r.root, segments, 0)
 }
 
@@ -136,4 +142,17 @@ func pathSegments(path string) []string {
 		}
 	}
 	return segments[:p]
+}
+
+func validate__NoDuplicateParams(path string, segments []string) error {
+	seen := make(map[string]bool)
+	for _, seg := range segments {
+		if seg[0] == ':' || seg[0] == '*' {
+			if _, ok := seen[seg[1:]]; ok {
+				return fmt.Errorf("duplicate parameter %s defined in path %s", seg[1:], path)
+			}
+			seen[seg[1:]] = true
+		}
+	}
+	return nil
 }
