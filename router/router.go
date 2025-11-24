@@ -93,3 +93,7 @@ func (r *Router) CONNECT(path string, handler types.Handler) {
 func (r *Router) TRACE(path string, handler types.Handler) {
 	r.add(http.MethodTrace, path, handler)
 }
+
+func (r *Router) Group(prefix string) SubRouter {
+	return NewSubRouter(r, prefix)
+}
