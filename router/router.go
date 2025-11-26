@@ -55,7 +55,6 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	ctx := WithParams(req.Context(), params)
 	req = req.WithContext(ctx)
 
-	// TODO: this seems backwards
 	for i := len(r.global) - 1; i >= 0; i-- {
 		h = r.global[i](h)
 	}
