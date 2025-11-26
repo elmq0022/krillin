@@ -22,7 +22,11 @@ func NewSubRouter(r *Router, prefix string) SubRouter {
 		panic(fmt.Sprintf("prefix %s does not start with a '/'", prefix))
 	}
 
-	prefix = strings.TrimRight(prefix, "/")
+	trimedPrefix := strings.TrimRight(prefix, "/")
+	if trimedPrefix[len(trimedPrefix)-1] == '*' {
+		panic(fmt.Sprintf("prefix %s cannot end in a wildcard '*'", prefix))
+	}
+
 	return SubRouter{
 		r:      r,
 		prefix: prefix,
