@@ -147,7 +147,7 @@ func pathSegments(path string) []string {
 func validate__NoDuplicateParams(path string, segments []string) error {
 	seen := make(map[string]bool)
 	for _, seg := range segments {
-		if seg[0] == ':' || seg[0] == '*' {
+		if len(seg) < 1 || seg[0] == ':' || seg[0] == '*' {
 			if _, ok := seen[seg[1:]]; ok {
 				return fmt.Errorf("duplicate parameter %s defined in path %s", seg[1:], path)
 			}
