@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/elmq0022/kami/responders.go"
+	"github.com/elmq0022/kami/responders"
 	"github.com/elmq0022/kami/router"
 	"github.com/elmq0022/kami/types"
 )
