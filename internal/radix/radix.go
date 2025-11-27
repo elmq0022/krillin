@@ -105,8 +105,19 @@ func lookup(node *Node, method string, segments []string, pos int, params map[st
 	}
 
 	if pos >= len(segments) {
-		handler, ok := node.terminal[method]
-		return handler, ok
+		// Check for terminal handler at this node
+		if handler, ok := node.terminal[method]; ok {
+			return handler, ok
+		}
+
+		// Allow wildcard to match empty string
+		if node.wildcard != nil {
+			params[node.wildcard.wildcardName] = ""
+			h, ok := node.wildcard.terminal[method]
+			return h, ok
+		}
+
+		return zero, false
 	}
 
 	for _, child := range node.children {
