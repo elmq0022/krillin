@@ -2,11 +2,14 @@ package router
 
 import (
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/elmq0022/kami/handlers"
 	"github.com/elmq0022/kami/internal/radix"
+	"github.com/elmq0022/kami/responders"
 	"github.com/elmq0022/kami/types"
 )
 
@@ -114,4 +117,18 @@ func (r *Router) TRACE(path string, handler types.Handler) {
 
 func (r *Router) Group(prefix string) SubRouter {
 	return NewSubRouter(r, prefix)
+}
+
+func (r *Router) ServeStatic(f fs.FS, prefix string) {
+	staticResponder := responders.NewStaticDirResponder(f, prefix)
+
+	if !strings.HasSuffix(prefix, "/") {
+		prefix += "/"
+	}
+	prefix += "*fp"
+
+	// Wrap in closure if router expects a func
+	r.GET(prefix, func(req *http.Request) types.Responder {
+		return staticResponder
+	})
 }
