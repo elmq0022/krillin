@@ -69,20 +69,18 @@ func TestJSONResponder(t *testing.T) {
 }
 
 func TestJSONResponder_UnmarshalableData(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("expected panic on unmarshalable data, but didn't panic")
+		}
+	}()
+
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	responder := responders.JSONResponse(make(chan int), 0) // channels are not JSON marshalable
 
+	// Should panic on marshal failure
 	responder.Respond(w, r)
-
-	// Should silently fail - no writes to response
-	if w.Code != http.StatusOK {
-		t.Errorf("expected default status %d, got %d", http.StatusOK, w.Code)
-	}
-
-	if w.Body.Len() != 0 {
-		t.Errorf("expected empty body on marshal error, got %q", w.Body.String())
-	}
 }
 
 func TestJSONErrorResponder(t *testing.T) {

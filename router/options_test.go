@@ -83,3 +83,22 @@ func TestWithNotFound(t *testing.T) {
 		t.Fatalf("want %s, got %s", "test not found", rr.Body.String())
 	}
 }
+
+func TestWithLogger(t *testing.T) {
+	r, _ := router.New(router.WithLogger())
+	r.GET("/test", func(req *http.Request) types.Responder {
+		return &testResponder{Status: http.StatusOK, Body: "logged"}
+	})
+
+	rr := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	r.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("want %d got %d", http.StatusOK, rr.Code)
+	}
+
+	if rr.Body.String() != "logged" {
+		t.Fatalf("want %s, got %s", "logged", rr.Body.String())
+	}
+}

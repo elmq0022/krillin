@@ -1,3 +1,4 @@
+// Package handlers provides default HTTP handlers for common scenarios such as 404 errors.
 package handlers
 
 import (
@@ -6,16 +7,19 @@ import (
 	"github.com/elmq0022/kami/types"
 )
 
-type DefaultNotFoundResponder struct {
-	Status int
-	Body   string
+type defaultNotFoundResponder struct {
+	status int
+	body   string
 }
 
-func (dnf *DefaultNotFoundResponder) Respond(w http.ResponseWriter, req *http.Request) {
-	w.WriteHeader(dnf.Status)
-	w.Write([]byte(dnf.Body))
+// Respond writes the plain text response to the ResponseWriter.
+func (dnf *defaultNotFoundResponder) Respond(w http.ResponseWriter, req *http.Request) {
+	w.WriteHeader(dnf.status)
+	w.Write([]byte(dnf.body))
 }
 
+// DefaultNotFoundHandler is the default 404 handler used by the router.
+// Returns a plain text "Not Found" response with HTTP 404 status.
 func DefaultNotFoundHandler(r *http.Request) types.Responder {
-	return &DefaultNotFoundResponder{Status: http.StatusNotFound, Body: "Not Found"}
+	return &defaultNotFoundResponder{status: http.StatusNotFound, body: "Not Found"}
 }

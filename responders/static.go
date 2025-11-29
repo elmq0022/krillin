@@ -12,6 +12,11 @@ type staticDirectoryResponder struct {
 	handler http.Handler
 }
 
+// NewStaticDirResponder creates a responder that serves static files from the given filesystem.
+// The prefix is the URL path prefix that will be stripped before looking up files in the FS.
+// For example, with prefix "/static" and FS containing "index.html",
+// a request to "/static/index.html" will serve the file.
+// Delegates to http.FileServer for actual file serving.
 func NewStaticDirResponder(f fs.FS, prefix string) *staticDirectoryResponder {
 	fsHandler := http.StripPrefix(prefix, http.FileServer(http.FS(f)))
 
@@ -22,6 +27,10 @@ func NewStaticDirResponder(f fs.FS, prefix string) *staticDirectoryResponder {
 	}
 }
 
+// Respond serves static files from the configured filesystem.
+// Automatically redirects directory requests to include a trailing slash.
+// For example, "/static/dir" redirects to "/static/dir/" with a 301 status.
+// Delegates to the underlying http.FileServer for actual file serving and security.
 func (r *staticDirectoryResponder) Respond(w http.ResponseWriter, req *http.Request) {
 	trimmed := strings.TrimPrefix(req.URL.Path, r.Prefix)
 

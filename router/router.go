@@ -1,3 +1,5 @@
+// Package router provides HTTP routing functionality using a radix tree for efficient path matching.
+// It supports path parameters, wildcards, middleware, and grouped routes.
 package router
 
 import (
@@ -13,12 +15,17 @@ import (
 	"github.com/elmq0022/kami/types"
 )
 
+// Router is the main HTTP router that uses a radix tree for efficient route matching.
+// It supports middleware, custom 404 handlers, and panic recovery.
 type Router struct {
 	radix    *radix.Radix
 	notFound types.Handler
 	global   []types.Middleware
 }
 
+// New creates a new Router with the given options.
+// Options can configure middleware, custom 404 handlers, and other router behavior.
+// Returns an error if the underlying radix tree initialization fails.
 func New(opts ...Option) (*Router, error) {
 	rdx, err := radix.New()
 	if err != nil {
@@ -37,6 +44,10 @@ func New(opts ...Option) (*Router, error) {
 	return r, nil
 }
 
+// Run starts the HTTP server on the specified port.
+// The port should be in the format ":8080" or "localhost:8080".
+// This is a convenience method that calls http.ListenAndServe with the router as the handler.
+// The function will block until the server fails to start or is shut down.
 func (r *Router) Run(port string) {
 	log.Printf("Starting server on %s", port)
 	if err := http.ListenAndServe(port, r); err != nil {
@@ -44,6 +55,9 @@ func (r *Router) Run(port string) {
 	}
 }
 
+// ServeHTTP implements http.Handler, making Router compatible with the standard library.
+// It performs route lookup, applies middleware, handles panics, and executes the matched handler.
+// If no route matches, the configured notFound handler is used (defaults to a 404 response).
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
@@ -79,46 +93,81 @@ func (r *Router) add(method, path string, handler types.Handler) {
 	}
 }
 
+// GET registers a handler for GET requests at the given path.
+// Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
+// Panics if the route cannot be registered (e.g., conflicts with existing routes).
 func (r *Router) GET(path string, handler types.Handler) {
 	r.add(http.MethodGet, path, handler)
 }
 
+// POST registers a handler for POST requests at the given path.
+// Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
+// Panics if the route cannot be registered (e.g., conflicts with existing routes).
 func (r *Router) POST(path string, handler types.Handler) {
 	r.add(http.MethodPost, path, handler)
 }
 
+// PUT registers a handler for PUT requests at the given path.
+// Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
+// Panics if the route cannot be registered (e.g., conflicts with existing routes).
 func (r *Router) PUT(path string, handler types.Handler) {
 	r.add(http.MethodPut, path, handler)
 }
 
+// DELETE registers a handler for DELETE requests at the given path.
+// Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
+// Panics if the route cannot be registered (e.g., conflicts with existing routes).
 func (r *Router) DELETE(path string, handler types.Handler) {
 	r.add(http.MethodDelete, path, handler)
 }
 
+// PATCH registers a handler for PATCH requests at the given path.
+// Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
+// Panics if the route cannot be registered (e.g., conflicts with existing routes).
 func (r *Router) PATCH(path string, handler types.Handler) {
 	r.add(http.MethodPatch, path, handler)
 }
 
+// HEAD registers a handler for HEAD requests at the given path.
+// Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
+// Panics if the route cannot be registered (e.g., conflicts with existing routes).
 func (r *Router) HEAD(path string, handler types.Handler) {
 	r.add(http.MethodHead, path, handler)
 }
 
+// OPTIONS registers a handler for OPTIONS requests at the given path.
+// Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
+// Panics if the route cannot be registered (e.g., conflicts with existing routes).
 func (r *Router) OPTIONS(path string, handler types.Handler) {
 	r.add(http.MethodOptions, path, handler)
 }
 
+// CONNECT registers a handler for CONNECT requests at the given path.
+// Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
+// Panics if the route cannot be registered (e.g., conflicts with existing routes).
 func (r *Router) CONNECT(path string, handler types.Handler) {
 	r.add(http.MethodConnect, path, handler)
 }
 
+// TRACE registers a handler for TRACE requests at the given path.
+// Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
+// Panics if the route cannot be registered (e.g., conflicts with existing routes).
 func (r *Router) TRACE(path string, handler types.Handler) {
 	r.add(http.MethodTrace, path, handler)
 }
 
+// Group creates a SubRouter with the given path prefix.
+// All routes registered on the SubRouter will be prefixed with this path.
+// For example, Group("/api/v1") creates routes under /api/v1/*.
 func (r *Router) Group(prefix string) SubRouter {
 	return NewSubRouter(r, prefix)
 }
 
+// ServeStatic registers a handler to serve static files from the given filesystem.
+// The prefix determines the URL path where files will be served.
+// For example, ServeStatic(os.DirFS("./static"), "/static") serves files from
+// the ./static directory at /static/*.
+// Automatically handles directory redirects and delegates to http.FileServer.
 func (r *Router) ServeStatic(f fs.FS, prefix string) {
 	staticResponder := responders.NewStaticDirResponder(f, prefix)
 
