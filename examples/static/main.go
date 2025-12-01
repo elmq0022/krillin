@@ -26,7 +26,7 @@ func main() {
 
 	// serve static files by passing an fs.FS base directory
 	// and the route base rout to r.ServeStatic
-	r.ServeStatic(web, "/web/")
+	r.ServeStatic(web, "/")
 
 	// run the app
 	r.Run(":8080")
