@@ -11,6 +11,25 @@ Web templates are also planned.
 ## Philosophy
 The author aims to keep the library small enough that reading the code and a few examples can serve as the documentation.
 
+## Getting Started
+
+### Installing Task
+
+This project uses [Task](https://taskfile.dev/) as a task runner. To install it:
+
+**macOS/Linux:**
+```bash
+sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b ~/.local/bin
+```
+
+**macOS (Homebrew):**
+```bash
+brew install go-task/tap/go-task
+```
+
+**Other installation methods:**
+See the [official Task installation guide](https://taskfile.dev/installation/) for additional options including package managers for various platforms.
+
 ## Examples
 
 The project includes example applications demonstrating various features:
